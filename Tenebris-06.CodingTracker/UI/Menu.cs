@@ -9,7 +9,7 @@ public class Menu
     }
     public void MainMenu()
     {
-        
+
         while (true)
         {
             Console.Clear();
@@ -65,38 +65,44 @@ public class Menu
 
             AnsiConsole.MarkupLine("Enter Dates and Times in this format [green]yyyy-MM-dd HH:mm:ss[/]");
             AnsiConsole.MarkupLine("[yellow] Or leave empty to enter the current datetime! [/]");
-            
-            while (true)
-                {
-                    string input = AnsiConsole.Prompt(
-                        new TextPrompt<string>("Enter the start time:")
-                            .AllowEmpty()
-                    );
-
-                    if (DateTimeHelper.TryGetDateTime(input, out startTime))
-                        break;
-
-                    AnsiConsole.MarkupLine(
-                        "[red]Invalid input, please try again.[/]"
-                    );
-                }
 
             while (true)
-                {
-                    string input = AnsiConsole.Prompt(
-                        new TextPrompt<string>("Enter the end time:")
-                            .AllowEmpty()
-                    );
+            {
+                string input = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Enter the start time:")
+                        .AllowEmpty()
+                );
 
-                    if (DateTimeHelper.TryGetDateTime(input, out endTime))
-                        break;
+                if (DateTimeHelper.TryGetDateTime(input, out startTime))
+                    break;
 
-                    AnsiConsole.MarkupLine(
-                        "[red]Invalid input, please try again.[/]"
-                    );
-                }
-            
+                AnsiConsole.MarkupLine(
+                    "[red]Invalid input, please try again.[/]"
+                );
+            }
+
+            while (true)
+            {
+                string input = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Enter the end time:")
+                        .AllowEmpty()
+                );
+
+                if (DateTimeHelper.TryGetDateTime(input, out endTime))
+                    break;
+
+                AnsiConsole.MarkupLine(
+                    "[red]Invalid input, please try again.[/]"
+                );
+            }
+
             TimeSpan duration = endTime - startTime;
+            if (duration <= TimeSpan.Zero)
+            {
+                AnsiConsole.MarkupLine("[red]Invalid input. End time cannot be set before or the same as the start time.[/]");
+                AnsiConsole.MarkupLine("[red]Please try again[/]");
+                continue;
+            }
             string description = AnsiConsole.Prompt(
                 new TextPrompt<string>("Enter a Description or a Note [yellow](optional)[/]")
                     .AllowEmpty()
@@ -104,20 +110,26 @@ public class Menu
 
             if (AnsiConsole.Confirm("Add Session?"))
             {
-                _db.CreateSession(new Session { StartTime = startTime, EndTime = endTime,
-                    Duration = duration, Description = description});
+                _db.CreateSession(new Session
+                {
+                    StartTime = startTime,
+                    EndTime = endTime,
+                    Duration = duration,
+                    Description = description
+                });
 
                 AnsiConsole.MarkupLine("[green]Session Added[/]");
 
                 break;
-            } else
+            }
+            else
             {
                 break;
             }
         }
-        
 
-            
+
+
     }
 
     public void DeleteSessionMenu()
@@ -129,24 +141,25 @@ public class Menu
         DisplayTable(sessions);
 
         while (true)
-        {    
+        {
             int IdToDelete = AnsiConsole.Ask<int>("ID:");
 
-            
+
             if (sessions.Any(s => s.Id == IdToDelete)
-                && AnsiConsole.Confirm("Delete session?") 
+                && AnsiConsole.Confirm("Delete session?")
                 )
             {
                 _db.DeleteSession(IdToDelete);
                 AnsiConsole.MarkupLine("[green]Session Deleted[/]");
                 break;
-            } else
+            }
+            else
             {
                 AnsiConsole.MarkupLine("[red]Session does not exist, please try again.[/]");
                 continue;
             }
         }
-        
+
     }
 
     public void ViewSessionsMenu()
@@ -156,19 +169,19 @@ public class Menu
         List<Session> sessions = _db.ReadSessions();
         DisplayTable(sessions);
         AnsiConsole.MarkupLine("Press [blue]ESC[/] to go back");
-        
+
         while (Console.ReadKey(true).Key != ConsoleKey.Escape)
         {
-            
+
         }
     }
-    
+
     public void StartSessionMenu()
     {
         Console.Clear();
         SessionService stopWatchData = new SessionService();
         stopWatchData.StartSession();
-      while (true)
+        while (true)
         {
             Console.Clear();
             var stopWatch = new Panel(
@@ -186,37 +199,37 @@ public class Menu
 
             AnsiConsole.Write(stopWatch);
 
-             if (Console.KeyAvailable)
+            if (Console.KeyAvailable)
+            {
+                var key = Console.ReadKey(true);
+
+                if (key.Key == ConsoleKey.Escape)
                 {
-                    var key = Console.ReadKey(true);
-
-                    if (key.Key == ConsoleKey.Escape)
+                    if (AnsiConsole.Confirm("[bold] Add this session? [/]"))
                     {
-                        if (AnsiConsole.Confirm("[bold] Add this session? [/]"))
-                        {
-                            string description = AnsiConsole.Prompt(
-                                new TextPrompt<string>("Enter a Description or a Note [yellow](optional)[/]")
-                                    .AllowEmpty()
-                            );
-                            Session s = stopWatchData.EndSession();
-                            s.Description = description;
-                            _db.CreateSession(s);
-                            AnsiConsole.MarkupLine("[bold green] Session Created![/]");
-                        }
-                        Console.Clear();
-                        break;
+                        string description = AnsiConsole.Prompt(
+                            new TextPrompt<string>("Enter a Description or a Note [yellow](optional)[/]")
+                                .AllowEmpty()
+                        );
+                        Session s = stopWatchData.EndSession();
+                        s.Description = description;
+                        _db.CreateSession(s);
+                        AnsiConsole.MarkupLine("[bold green] Session Created![/]");
                     }
+                    Console.Clear();
+                    break;
                 }
+            }
 
-    Thread.Sleep(1000);
+            Thread.Sleep(1000);
 
-        }  
+        }
     }
     public void DisplayTable(List<Session> list)
     {
         var table = new Table()
             .Title("[green]Session List[/]");
-        
+
         table.AddColumn("ID")
             .AddColumn("Start Time")
             .AddColumn("End Time")

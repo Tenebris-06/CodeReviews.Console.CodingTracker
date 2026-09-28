@@ -5,7 +5,7 @@ using Dapper;
 public class DataAccess
 {
     string _ConnectionString;
-    
+
     public DataAccess(string Connectionstring)
     {
         _ConnectionString = Connectionstring;
@@ -42,7 +42,7 @@ public class DataAccess
         DELETE FROM CodingSessions WHERE Id = @Id
         """;
         using var connection = new SqliteConnection(_ConnectionString);
-        connection.Execute(sql, new {Id = SessionId});
+        connection.Execute(sql, new { Id = SessionId });
     }
 
     public void UpdateSession(Session session)
@@ -64,9 +64,9 @@ public class DataAccess
         SELECT * FROM CodingSessions 
         """;
         using var connection = new SqliteConnection(_ConnectionString);
-        
+
         var sessions = connection.Query<Session>(sql);
-        
+
         return sessions.ToList();
     }
 }

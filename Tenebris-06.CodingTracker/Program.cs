@@ -3,22 +3,23 @@ using Dapper;
 using Microsoft.Extensions.Configuration;
 using Spectre.Console;
 
-class Program {
+class Program
+{
     static void Main(string[] args)
     {
-    
-    SqlMapper.AddTypeHandler(new TimeSpanHandler());
 
-    var configuration = new ConfigurationBuilder()
-        .SetBasePath(AppContext.BaseDirectory)
-        .AddJsonFile("appsettings.json")
-        .Build();
+        SqlMapper.AddTypeHandler(new TimeSpanHandler());
 
-    DataAccess db = new DataAccess(configuration["Database:ConnectionString"]);
-    db.Initialize();
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json")
+            .Build();
 
-    var UI = new Menu(db);
-    UI.MainMenu();
+        DataAccess db = new DataAccess(configuration["Database:ConnectionString"]);
+        db.Initialize();
+
+        var UI = new Menu(db);
+        UI.MainMenu();
 
     }
 }
